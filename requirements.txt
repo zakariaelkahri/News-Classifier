@@ -1,0 +1,14 @@
+pandas
+datasets
+matplotlib
+seaborn
+nltk
+sentence-transformers
+chromadb
+scikit-learn
+streamlit
+apache-airflow
+wordcloud
+ipykernel
+huggingface-hub
+regex

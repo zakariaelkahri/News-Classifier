@@ -1,0 +1,66 @@
+services:
+
+  # Airflow
+  airflow:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+    container_name: airflow_nlp
+    restart: always
+    environment:
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./data:/opt/airflow/data
+      - ./models:/opt/airflow/models
+    ports:
+      - "8082:8080"
+    command: ["bash", "/opt/airflow/init-airflow.sh"]
+
+
+
+  # PySpark + Streamlit
+  streamlit:
+    build: .
+    container_name: streamlit_nlp
+      # - airflow
+    ports:
+      - "8503:8501"
+    environment:
+      # MONGO_URI: mongodb://mongo:27017
+      AIRFLOW_URL: http://airflow:8082
+    volumes:
+      - ./app.py:/app/app.py          # map your Streamlit app
+      - ./models:/app/models 
+
+
+  # Jupyter Lab with PySpark and Hadoop
+  jupyter:
+    build:
+      context: .
+      dockerfile: notebooks/jupyter.Dockerfile
+    container_name: jupyter_lab_nlp
+
+    ports:
+      - "8890:8888"
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      # MONGO_URI: mongodb://mongo:27017
+      GRANT_SUDO: "yes"
+      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+      SPARK_HOME: /usr/local/spark
+      HADOOP_HOME: /opt/hadoop
+      HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./data:/home/jovyan/data
+      - ./chroma_db:/home/jovyan/chroma_db
+      - ./models:/home/jovyan/models
+
+
+# volumes:
+
